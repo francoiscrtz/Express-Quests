@@ -1,30 +1,4 @@
 const database = require("../../database");
-const movies = [
-  {
-    id: 1,
-    title: "Citizen Kane",
-    director: "Orson Wells",
-    year: "1941",
-    color: false,
-    duration: 120,
-  },
-  {
-    id: 2,
-    title: "The Godfather",
-    director: "Francis Ford Coppola",
-    year: "1972",
-    color: true,
-    duration: 180,
-  },
-  {
-    id: 3,
-    title: "Pulp Fiction",
-    director: "Quentin Tarantino",
-    year: "1994",
-    color: true,
-    duration: 180,
-  },
-];
 
 const getMovies = (req, res) => {
   database
@@ -44,7 +18,7 @@ const getMovieById = (req, res) => {
   database
     .query("select * from movies where id = ?", [id])
     .then(([movies]) => {
-      if (movies[0]) {
+      if (movies[0] != null) {
         res.json(movies[0]);
       } else {
         res.sendStatus(404);
@@ -56,29 +30,16 @@ const getMovieById = (req, res) => {
     });
 };
 
-const getUsers = (req, res) => {
-  database
-    .query("select * from users")
-    .then(([users]) => {
-      res.status(200).json(users);
-    })
-    .catch((err) => {
-      console.error(err);
-      res.sendStatus(500);
-    });
-};
-
-const getUserById = (req, res) => {
-  const id = parseInt(req.params.id);
+const postMovie = (req, res) => {
+  const { title, director, year, color, duration } = req.body;
 
   database
-    .query("select * from users where id = ?", [id])
-    .then(([users]) => {
-      if (users[0]) {
-        res.status(200).json(users[0]);
-      } else {
-        res.sendStatus(404);
-      }
+    .query(
+      "INSERT INTO movies(title, director, year, color, duration) VALUES (?, ?, ?, ?, ?)",
+      [title, director, year, color, duration]
+    )
+    .then(([result]) => {
+      res.status(201).send({ id: result.insertId });
     })
     .catch((err) => {
       console.error(err);
@@ -89,6 +50,5 @@ const getUserById = (req, res) => {
 module.exports = {
   getMovies,
   getMovieById,
-  getUsers,
-  getUserById,
+  postMovie,
 };
