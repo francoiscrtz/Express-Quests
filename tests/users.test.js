@@ -140,7 +140,7 @@ describe("PUT /api/users/:id", () => {
     expect(response.status).toEqual(422);
   });
 
-  it("should return no movie", async () => {
+  it("should return no user", async () => {
     const newMovie = {
       firstname: "xxx",
       lastname: "yyy",
@@ -150,6 +150,57 @@ describe("PUT /api/users/:id", () => {
     };
 
     const response = await request(app).put("/api/users/0").send(newMovie);
+
+    expect(response.status).toEqual(404);
+  });
+});
+
+describe("DELETE /api/users/:id", () => {
+  it("should delete user", async () => {
+    const newUser = {
+      firstname: "Deletefirstname",
+      lastname: "Deletelastname",
+      email: `delete${crypto.randomUUID()}@delete.com`,
+      city: "Deletecity",
+      language: "Deletelanguage",
+    };
+
+    const [result] = await database.query(
+      "INSERT INTO users(firstname, lastname, email, city, language) VALUES (?, ?, ?, ?, ?)",
+      [
+        newUser.firstname,
+        newUser.lastname,
+        newUser.email,
+        newUser.city,
+        newUser.language,
+      ]
+    );
+
+    const id = result.insertId;
+
+    const response = await request(app).delete(`/api/users/${id}`);
+
+    expect(response.status).toEqual(204);
+
+    const [deletedUser] = await database.query(
+      "SELECT * FROM users WHERE id = ?",
+      id
+    );
+
+    const hasBeenDeleted = deletedUser[0];
+    expect(hasBeenDeleted).toBeUndefined();
+  });
+
+  it("should return no user", async () => {
+    const newUser = {
+      firstname: "Deletefirstname",
+      lastname: "Deletelastname",
+      email: `delete${crypto.randomUUID()}@delete.com`,
+      city: "Deletecity",
+      language: "Deletelanguage",
+    };
+
+    const response = await request(app).delete("/api/users/0").send(newUser);
 
     expect(response.status).toEqual(404);
   });

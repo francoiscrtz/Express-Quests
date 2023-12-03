@@ -167,6 +167,57 @@ describe("PUT /api/movies/:id", () => {
   });
 });
 
+describe("DELETE /api/movies/:id", () => {
+  it("should delete movie", async () => {
+    const newMovie = {
+      title: "Deletetitle",
+      director: "Deletedirector",
+      year: "Deleteyear",
+      color: "1",
+      duration: 1,
+    };
+
+    const [result] = await database.query(
+      "INSERT INTO movies(title, director, year, color, duration) VALUES (?, ?, ?, ?, ?)",
+      [
+        newMovie.title,
+        newMovie.director,
+        newMovie.year,
+        newMovie.color,
+        newMovie.duration,
+      ]
+    );
+
+    const id = result.insertId;
+
+    const response = await request(app).delete(`/api/movies/${id}`);
+
+    expect(response.status).toEqual(204);
+
+    const [deletedMovie] = await database.query(
+      "SELECT * FROM movies WHERE id = ?",
+      id
+    );
+
+    const hasBeenDeleted = deletedMovie[0];
+    expect(hasBeenDeleted).toBeUndefined();
+  });
+
+  it("should return no movie", async () => {
+    const newMovie = {
+      title: "Delete",
+      director: "James Cameron",
+      year: "2009",
+      color: "1",
+      duration: 162,
+    };
+
+    const response = await request(app).delete("/api/movies/0").send(newMovie);
+
+    expect(response.status).toEqual(404);
+  });
+});
+
 const database = require("../database");
 
 afterAll(() => database.end());
